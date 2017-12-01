@@ -47,13 +47,13 @@ namespace g2o {
  * Has no dependencies except Eigen. Hence, should compile almost everywhere
  * without to much issues. Performance should be similar to CSparse, I guess.
  */
-template <typename MatrixType>
-class LinearSolverEigen: public LinearSolver<MatrixType>
-{
-  public:
+   template <typename MatrixType>
+   class LinearSolverEigen: public LinearSolver<MatrixType>
+   {
+    public:
     typedef Eigen::SparseMatrix<double, Eigen::ColMajor> SparseMatrix;
     typedef Eigen::Triplet<double> Triplet;
-    typedef Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> PermutationMatrix;
+    typedef Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic, int> PermutationMatrix;
     /**
      * \brief Sub-classing Eigen's SimplicialLDLT to perform ordering with a given ordering
      */
