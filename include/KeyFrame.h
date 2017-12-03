@@ -58,6 +58,7 @@ public:
     void ComputeBoW();
 
     // Covisibility graph functions
+    //TODO::what's meaning
     void AddConnection(KeyFrame* pKF, const int &weight);
     void EraseConnection(KeyFrame* pKF);
     void UpdateConnections();
