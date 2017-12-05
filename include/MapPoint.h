@@ -155,6 +155,7 @@ protected:
 
      std::mutex mMutexPos;
      std::mutex mMutexFeatures;
+     cv::Scalar mPointColor;
 };
 
 } //namespace ORB_SLAM

@@ -148,6 +148,8 @@ public:
 
     // ORB descriptor, each row associated to a keypoint.
     cv::Mat mDescriptors, mDescriptorsRight;
+    // Color of the keypoints, each row associated to a keypoint.
+    std::vector<cv::Scalar> mKeypointColor,mKeypointColorRight;
 
     // MapPoints associated to keypoints, NULL pointer if no association.
     std::vector<MapPoint*> mvpMapPoints;

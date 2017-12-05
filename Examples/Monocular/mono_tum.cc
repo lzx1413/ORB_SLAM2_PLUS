@@ -107,6 +107,7 @@ int main(int argc, char **argv)
     }
 
     // Stop all threads
+    getchar();
     SLAM.Shutdown();
 
     // Tracking time statistics
