@@ -41,6 +41,7 @@ class MapPoint
 {
 public:
     MapPoint(const cv::Mat &Pos, KeyFrame* pRefKF, Map* pMap);
+    MapPoint(const cv::Mat &Pos, KeyFrame* pRefKF, Map* pMap,cv::Scalar pointColor);
     MapPoint(const cv::Mat &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
 
     void SetWorldPos(const cv::Mat &Pos);
@@ -121,6 +122,7 @@ public:
 
 
     static std::mutex mGlobalMutex;
+    cv::Scalar mPointColor;
 
 protected:    
 
@@ -155,7 +157,6 @@ protected:
 
      std::mutex mMutexPos;
      std::mutex mMutexFeatures;
-     cv::Scalar mPointColor;
 };
 
 } //namespace ORB_SLAM

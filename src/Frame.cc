@@ -116,7 +116,7 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     AssignFeaturesToGrid();
 }
 
-Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
+Frame::Frame(const cv::Mat &imGray,const cv::Mat & imColor, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
     :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
      mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth)
 {
@@ -134,7 +134,8 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 
     // ORB extraction
     ExtractORB(0,imGray);
-
+    if(imColor.channels()>=3)
+        SetPointColor(0,imColor);
     N = mvKeys.size();
 
     if(mvKeys.empty())
@@ -171,7 +172,7 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 }
 
 
-Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
+Frame::Frame(const cv::Mat &imGray,const cv::Mat &imColor, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
     :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
      mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth)
 {
@@ -243,41 +244,42 @@ void Frame::AssignFeaturesToGrid()
             mGrid[nGridPosX][nGridPosY].push_back(i);
     }
 }
-
-void Frame::ExtractORB(int flag, const cv::Mat &im)
-{
-    cv::Mat rawImg;
-    if(im.channels() == 1)
-        cv::cvtColor(im,rawImg,cv::COLOR_GRAY2BGR);
-    else
-        rawImg = im;
-    if(flag==0) {
-        (*mpORBextractorLeft)(im, cv::Mat(), mvKeys, mDescriptors);
-        if(mvKeys.size()>0)
-        {
-            for(int i = 0;i<mvKeys.size();++i)
+    void Frame::SetPointColor(int flag,const cv::Mat &rawImg)
+    {
+        if(flag==0) {
+            if(mvKeys.size()>0)
             {
-                cv::Scalar pointColor = cv::Scalar(rawImg.at<cv::Vec3b>(mvKeys.at(i).pt.y,mvKeys.at(i).pt.x)[0], \
+                for(int i = 0;i<mvKeys.size();++i)
+                {
+                    cv::Scalar pointColor = cv::Scalar(rawImg.at<cv::Vec3b>(mvKeys.at(i).pt.y,mvKeys.at(i).pt.x)[0], \
                                                    rawImg.at<cv::Vec3b>(mvKeys.at(i).pt.y,mvKeys.at(i).pt.x)[1], \
                                                    rawImg.at<cv::Vec3b>(mvKeys.at(i).pt.y,mvKeys.at(i).pt.x)[2]);
-                mKeypointColor.push_back(pointColor);
+                    mKeypointColor.push_back(pointColor);
+                }
+            }
+
+        }
+        else {
+            if(mvKeysRight.size()>0)
+            {
+                for(int i = 0;i<mvKeys.size();++i)
+                {
+                    cv::Scalar pointColor = cv::Scalar(rawImg.at<cv::Vec3b>(mvKeysRight.at(i).pt.y,mvKeysRight.at(i).pt.x)[0], \
+                                                   rawImg.at<cv::Vec3b>(mvKeysRight.at(i).pt.y,mvKeysRight.at(i).pt.x)[1], \
+                                                   rawImg.at<cv::Vec3b>(mvKeysRight.at(i).pt.y,mvKeysRight.at(i).pt.x)[2]);
+                    mKeypointColorRight.push_back(pointColor);
+                }
             }
         }
 
     }
-    else {
+void Frame::ExtractORB(int flag, const cv::Mat &im)
+{
+    if(flag==0)
+        (*mpORBextractorLeft)(im, cv::Mat(), mvKeys, mDescriptors);
+
+    else
         (*mpORBextractorRight)(im, cv::Mat(), mvKeysRight, mDescriptorsRight);
-        if(mvKeysRight.size()>0)
-        {
-            for(int i = 0;i<mvKeys.size();++i)
-            {
-                cv::Scalar pointColor = cv::Scalar(rawImg.at<cv::Vec3b>(mvKeysRight.at(i).pt.y,mvKeysRight.at(i).pt.x)[0], \
-                                                   rawImg.at<cv::Vec3b>(mvKeysRight.at(i).pt.y,mvKeysRight.at(i).pt.x)[1], \
-                                                   rawImg.at<cv::Vec3b>(mvKeysRight.at(i).pt.y,mvKeysRight.at(i).pt.x)[2]);
-                mKeypointColorRight.push_back(pointColor);
-            }
-        }
-    }
 }
 
 void Frame::SetPose(cv::Mat Tcw)
