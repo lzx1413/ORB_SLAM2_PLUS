@@ -120,6 +120,7 @@ int main(int argc, char **argv)
     }
 
     // Stop all threads
+    getchar();
     SLAM.Shutdown();
 
     // Tracking time statistics
@@ -135,7 +136,7 @@ int main(int argc, char **argv)
 
     // Save camera trajectory
     SLAM.SaveTrajectoryTUM("CameraTrajectory.txt");
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");   
+    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
 
     return 0;
 }
