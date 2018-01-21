@@ -99,6 +99,26 @@ chmod +x build.sh
 ```
 
 This will create **libORB_SLAM2.so**  at *lib* folder and the executables **mono_tum**, **mono_kitti**, **rgbd_tum**, **stereo_kitti**, **mono_euroc** and **stereo_euroc** in *Examples* folder.
+## build python bindings 
+### Boost
+```
+apt-get install -y libboost-all-dev
+```
+### python3 dev
+```
+apt get install -y python3-dev
+```
+### build python 
+```$xslt
+cd python
+cmake . 
+make 
+```
+### set python path
+```$xslt
+export PYTHONPATH=/orbslam/src/build:$PYTHONPATH
+```
+
 
 # 4. Monocular Examples
 
