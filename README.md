@@ -109,7 +109,7 @@ apt-get install -y libboost-all-dev
 ```
 ### python3 dev
 ```
-apt get install -y python3-dev
+apt-get install -y python3-dev
 ```
 ### build python 
 ```$xslt
