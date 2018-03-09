@@ -37,7 +37,8 @@ namespace ORB_SLAM2
 {
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
-               const bool bUseViewer, bool is_save_map_):mSensor(sensor), is_save_map(is_save_map_), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false),
+               const bool bUseViewer, bool is_save_map_,bool show_dense_map_):mSensor(sensor),\
+                is_save_map(is_save_map_),show_dense_map(show_dense_map_), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false),
         mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false)
 {
     // Output welcome message
@@ -70,6 +71,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     {
         mapfile = (string)mapfilen;
     }
+    float resolution = fsSettings["PointCloudMapping.Resolution"];
+    resolution = 0.01;
 
     //Load ORB Vocabulary
     cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
@@ -109,8 +112,15 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
-    mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
-                             mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor, bReuseMap);
+    if(this->show_dense_map) {
+        mpPointCloudMapping = make_shared<PointCloudMapping>(resolution);
+        mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
+                                 mpMap,mpPointCloudMapping, mpKeyFrameDatabase, strSettingsFile, mSensor, bReuseMap);
+    }
+    else {
+        mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
+                                 mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor, bReuseMap);
+    }
 
     //Initialize the Local Mapping thread and launch
     mpLocalMapper = new LocalMapping(mpMap, mSensor==MONOCULAR);
@@ -336,6 +346,8 @@ void System::Shutdown()
             std::this_thread::sleep_for(std::chrono::microseconds(5000));
         }
     }
+    if(show_dense_map)
+        mpPointCloudMapping->shutdown();
 
     // Wait until all thread have effectively stopped
     while(!mpLocalMapper->isFinished() || !mpLoopCloser->isFinished() || mpLoopCloser->isRunningGBA())

@@ -45,7 +45,8 @@ endif (COMMAND cmake_policy)
 # Add cmake_modules to module
 set(CMAKE_MODULE_PATH
         ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules" /usr/local/include/eigen3/cmake)
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
+        #"${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules" /usr/include/eigen3/cmake)
 
 # Set the release mode if not specified
 if (NOT CMAKE_BUILD_TYPE)
