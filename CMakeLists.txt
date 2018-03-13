@@ -71,8 +71,7 @@ src/KeyFrameDatabase.cc
 src/Sim3Solver.cc
 src/Initializer.cc
 src/Viewer.cc
-        src/pointcloudmapping.cc
-)
+        src/pointcloudmapping.cc)
 
 target_link_libraries(${PROJECT_NAME}
 ${OpenCV_LIBS}
@@ -93,7 +92,10 @@ target_link_libraries(${PROJECT_NAME} ${BOOST_SERIALIZATION})
 # Build examples
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/RGB-D)
-
+add_executable(rgbd_tum_obj
+        Examples/OBJSLAM/tum_rgbd_obj.cc
+        src/ObjectInstance.cc include/ObjectInstance.h src/ObjectManager.cc include/ObjectManager.h include/utils.h src/utils.cc)
+target_link_libraries(rgbd_tum_obj ${PROJECT_NAME} jsoncpp)
 add_executable(rgbd_tum
 Examples/RGB-D/rgbd_tum.cc)
 target_link_libraries(rgbd_tum ${PROJECT_NAME})
