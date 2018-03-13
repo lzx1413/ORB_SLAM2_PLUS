@@ -38,6 +38,8 @@
 #include "MapDrawer.h"
 #include "System.h"
 #include "pointcloudmapping.h"
+#include "utils.h"
+#include "ObjectManager.h"
 
 #include <mutex>
 using  namespace ORB_SLAM2;
@@ -49,7 +51,7 @@ class Map;
 class LocalMapping;
 class LoopClosing;
 class System;
-    class PointCloudMapping;
+class PointCloudMapping;
 
 class Tracking
 {  
@@ -59,7 +61,7 @@ public:
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,
              KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, bool bReuseMap=false);
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,shared_ptr<PointCloudMapping> pPointCloud,
-             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, bool bReuseMap=false);
+             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor,shared_ptr<ObjectManager> pObjectManger, bool bReuseMap=false);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
     cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);
@@ -221,6 +223,28 @@ protected:
 
     list<MapPoint*> mlpTemporalPoints;
     shared_ptr<PointCloudMapping> mpPointCloudMapping;
+
+    //object relevant
+public:
+    bool mNewKfInserted = false;
+    void SetCurrentObjsInfo(const std::vector<ImgObjectInfo>& objsinfo)
+    {
+        mCurrentObjInfo = objsinfo;
+    }
+    std::vector<ImgObjectInfo> GetCurrentObjsInfo()
+    {
+        return mCurrentObjInfo;
+    }
+
+private:
+    std::vector<ImgObjectInfo> mCurrentObjInfo;
+    shared_ptr<ObjectManager> mObjectManager;
+    bool mEnableObject = true;
+    void SearchNewObjectInstnces();
+
+
+
+
 };
 
 } //namespace ORB_SLAM

@@ -152,10 +152,10 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
 }
     Tracking::Tracking(System *pSys, ORBVocabulary *pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Map *pMap,
                        shared_ptr<PointCloudMapping> pPointCloud, KeyFrameDatabase *pKFDB, const string &strSettingPath,
-                       const int sensor, bool bReuseMap):mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
+                       const int sensor,shared_ptr<ObjectManager> pObjectManger, bool bReuseMap):mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
                 mpPointCloudMapping( pPointCloud ),
                 mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)), mpSystem(pSys),
-                mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0)
+                mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0),mObjectManager(pObjectManger)
     {
         // Load camera parameters from settings file
 
@@ -254,6 +254,8 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
             else
                 mDepthMapFactor = 1.0f/mDepthMapFactor;
         }
+        if (bReuseMap)
+            mState = LOST;
 
     }
 
@@ -320,7 +322,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     cv::Mat imColor = imRGB.clone();
     mImDepth = imD;
     mImRGB = imRGB;
-
+    //image and depth preprocess
     if(mImGray.channels()==3)
     {
         if(mbRGB)
@@ -340,7 +342,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
         imDepth.convertTo(imDepth,CV_32F,mDepthMapFactor);
     if(mDepthMapFactor != 1 || mImDepth.type()!=CV_32F)
         mImDepth.convertTo(mImDepth,CV_32F,mDepthMapFactor);
-
+    //convert to Frame
     mCurrentFrame = Frame(mImGray,imColor,mImDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
 
     Track();
@@ -571,6 +573,8 @@ void Tracking::Track()
             // Check if we need to insert a new keyframe
             if(NeedNewKeyFrame())
                 CreateNewKeyFrame();
+            mNewKfInserted = true;
+
 
             // We allow points with high innovation (considererd outliers by the Huber Function)
             // pass to the new keyframe, so that bundle adjustment will finally decide
@@ -621,7 +625,16 @@ void Tracking::Track()
 
 }
 
+void Tracking::SearchNewObjectInstnces() {
+    if(mCurrentObjInfo.size()<1)
+        return;
+    vector<ObjectInstance> newObjectInstancess;
+    for(auto img_obj:mCurrentObjInfo)
+    {
+        //TODO:
+    }
 
+}
 void Tracking::StereoInitialization()
 {
     if(mCurrentFrame.N>500)
@@ -1255,6 +1268,7 @@ void Tracking::CreateNewKeyFrame()
         mpPointCloudMapping->insertKeyFrame(pKF,this->mImRGB,this->mImDepth);
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
+    mNewKfInserted = true;
 }
 
 void Tracking::SearchLocalPoints()

@@ -113,9 +113,11 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
     if(this->show_dense_map) {
+        //TODO:refact this part
         mpPointCloudMapping = make_shared<PointCloudMapping>(resolution);
+        mObjectManager = make_shared<ObjectManager>(100);
         mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
-                                 mpMap,mpPointCloudMapping, mpKeyFrameDatabase, strSettingsFile, mSensor, bReuseMap);
+                                 mpMap,mpPointCloudMapping, mpKeyFrameDatabase, strSettingsFile, mSensor,mObjectManager,bReuseMap);
     }
     else {
         mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
@@ -572,6 +574,11 @@ bool System::LoadMap(const string &filename)
     cout << " ...done" << endl;
     in.close();
     return true;
+}
+void System::SetCurrentObjsInfo(const std::vector<ImgObjectInfo>& objsinfo)
+{
+    mpTracker->SetCurrentObjsInfo(objsinfo);
+
 }
 
 } //namespace ORB_SLAM

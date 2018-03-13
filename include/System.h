@@ -36,6 +36,8 @@
 #include "ORBVocabulary.h"
 #include "Viewer.h"
 #include "pointcloudmapping.h"
+#include "utils.h"
+#include "ObjectManager.h"
 
 #include "BoostArchiver.h"
 // for map file io
@@ -186,6 +188,11 @@ private:
     std::vector<MapPoint*> mTrackedMapPoints;
     std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
     std::mutex mMutexState;
+    //object relevant
+private:
+    shared_ptr<ObjectManager> mObjectManager;
+public:
+    void SetCurrentObjsInfo(const std::vector<ImgObjectInfo>& objsinfo);
 };
 
 }// namespace ORB_SLAM

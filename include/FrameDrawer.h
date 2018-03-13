@@ -29,6 +29,7 @@
 #include<opencv2/features2d/features2d.hpp>
 
 #include<mutex>
+#include "utils.h"
 
 
 namespace ORB_SLAM2
@@ -56,6 +57,7 @@ protected:
     cv::Mat mIm;
     int N;
     vector<cv::KeyPoint> mvCurrentKeys;
+    std::vector<ImgObjectInfo> mCurrentObjsInfo;
     vector<bool> mvbMap, mvbVO;
     bool mbOnlyTracking;
     int mnTracked, mnTrackedVO;

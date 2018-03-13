@@ -91,6 +91,10 @@ cv::Mat FrameDrawer::DrawFrame()
     }
     else if(state==Tracking::OK) //TRACKING
     {
+        if(mCurrentObjsInfo.size()>0)
+        {
+            ShowObjectOnOneImage(im,mCurrentObjsInfo);
+        }
         mnTracked=0;
         mnTrackedVO=0;
         const float r = 5;
@@ -171,6 +175,7 @@ void FrameDrawer::Update(Tracking *pTracker)
 {
     unique_lock<mutex> lock(mMutex);
     pTracker->mImGray.copyTo(mIm);
+    mCurrentObjsInfo = pTracker->GetCurrentObjsInfo();
     mvCurrentKeys=pTracker->mCurrentFrame.mvKeys;
     N = mvCurrentKeys.size();
     mvbVO = vector<bool>(N,false);

@@ -12,10 +12,11 @@ struct ImgObjectInfo{
     int class_id;
     float socre;
     cv::Rect bbox;
-    std::vector<std::vector<cv::Point2f>> mask_contours;
+    std::vector<std::vector<cv::Point>> mask_contours;
 
 };
 
 int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<ImgObjectInfo>& objs_info);
+void ShowObjectOnOneImage(cv::Mat& img,const std::vector<ImgObjectInfo>& objs_info);
 
 #endif //ORB_SLAM2_UTILS_H

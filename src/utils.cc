@@ -39,12 +39,12 @@ int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<ImgObjec
         assert(json_masks.isArray());
         for(int mask_index = 0;mask_index<json_masks.size();++mask_index)
         {
-            std::vector<cv::Point2f> contour;
+            std::vector<cv::Point> contour;
             Json::Value json_mask = json_masks[mask_index];
             for(int j = 0;j<json_mask.size();++j)
             {
                 Json::Value point = json_mask[j][0];
-                cv::Point2f pt(point[0].asFloat(),point[1].asFloat());
+                cv::Point pt(point[0].asInt(),point[1].asInt());
                 contour.push_back(pt);
             }
             new_obj_info.mask_contours.push_back(contour);
@@ -52,5 +52,12 @@ int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<ImgObjec
         objs_info.push_back(new_obj_info);
     }
     return 0;
-
+}
+void ShowObjectOnOneImage(cv::Mat& img,const std::vector<ImgObjectInfo>& objs_info)
+{
+    for(auto obj_info:objs_info)
+    {
+        cv::rectangle(img,obj_info.bbox,cv::Scalar(0,255,0));
+        cv::drawContours(img,obj_info.mask_contours,-1,cv::Scalar(255,0,0),1);
+    }
 }
