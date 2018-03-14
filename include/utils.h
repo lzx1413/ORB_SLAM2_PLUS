@@ -13,6 +13,14 @@ struct ImgObjectInfo{
     float socre;
     cv::Rect bbox;
     std::vector<std::vector<cv::Point>> mask_contours;
+    void AppendMaskContour(const std::vector<cv::Point>& mask_c)
+    {
+        std::vector<cv::Point> poly_c;
+        cv::approxPolyDP(mask_c,poly_c,0.1,false);
+        std::cout<<"raw "<<mask_c.size()<<" poly "<<poly_c.size()<<std::endl;
+        mask_contours.push_back(poly_c);
+
+    }
 
 };
 

@@ -28,7 +28,7 @@ int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<ImgObjec
     {
         Json::Value current = root[i];
         ImgObjectInfo new_obj_info;
-        new_obj_info.class_id = current["class_id"].asInt();
+        new_obj_info.class_id = current["mClassId"].asInt();
         new_obj_info.socre = current["score"].asFloat();
         float x_min = current["bbox"][0].asFloat();
         float y_min = current["bbox"][1].asFloat();
@@ -47,7 +47,7 @@ int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<ImgObjec
                 cv::Point pt(point[0].asInt(),point[1].asInt());
                 contour.push_back(pt);
             }
-            new_obj_info.mask_contours.push_back(contour);
+            new_obj_info.AppendMaskContour(contour);
         }
         objs_info.push_back(new_obj_info);
     }

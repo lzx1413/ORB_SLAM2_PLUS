@@ -7,6 +7,12 @@
 
 #include <vector>
 #include <memory>
+#include <set>
+#include <unordered_map>
+#include "Frame.h"
+#include "ORBmatcher.h"
+#include "utils.h"
+using namespace ORB_SLAM2;
 
 class ObjectInstance;
 
@@ -16,12 +22,17 @@ public:
     ObjectManager(const ObjectInstance&) = delete;
     ObjectManager& operator=(const ObjectManager) = delete;
     int InsertNewObject(std::shared_ptr<ObjectInstance> obj);
-    int MatchObjectInstances(std::shared_ptr<ObjectInstance> obj);
+    int MatchObjectInstances(std::shared_ptr<ObjectInstance> obj,Frame& pCurrentFrame,const Frame& nLastFrame,ORBmatcher& matcher);
+    int BuildNewObjects(const Frame& pCurrentFrame,const std::vector<ImgObjectInfo>& pImgObjsInfo, \
+    std::vector<shared_ptr<ObjectInstance>>& pObjInstances);
 
 private:
     std::vector<std::shared_ptr<ObjectInstance>> mvObjectIntances;
     int mMaxObjNum;
-
+    std::set<int> msObjectClasses;
+    std::unordered_map<int,std::vector<int>> mClassInstanceIdMap;
+    bool mFirstFrame = true;
+    int mCurrentObjectIndex = 0;
 
 };
 

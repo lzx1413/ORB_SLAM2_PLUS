@@ -3,22 +3,27 @@
 //
 
 #include "ObjectInstance.h"
-
-ObjectInstance::ObjectInstance(const int index, const int class_id, const float score, const cv::Rect &rect,
-                               const int kf_index, const std::vector<cv::Point2f> &img_kpts):mIndex(index) {
+#include "MapPoint.h"
+ObjectInstance::ObjectInstance(int index,const int class_id, const float score, const cv::Rect &rect,
+                               const long unsigned int kf_index, const std::vector<cv::KeyPoint> &img_kpts,const std::vector<MapPoint*>& pvMapPoints) {
     mvClassIds.push_back(class_id);
     mvScores.push_back(score);
     mvRects.push_back(rect);
     mvKeyframeIndexs.push_back(kf_index);
-    mvvImgKpts.push_back(img_kpts);
-
+    mvvImgKpts=img_kpts;
+    mvMapPoints=pvMapPoints;
+    mIndex = index;
 }
-void ObjectInstance::UpdateObjectInfo(const int class_id, const float score, const cv::Rect rect, const int kf_index,
-                                      const std::vector<cv::Point2f> &img_kpts) {
+ObjectInstance::ObjectInstance(int index) {
+    mIndex = index;
+}
+void ObjectInstance::UpdateObjectInfo(const int class_id, const float score, const cv::Rect rect, const long unsigned int kf_index,
+                                      const std::vector<cv::KeyPoint> &img_kpts,const std::vector<MapPoint*>& pMapPoints) {
     mvClassIds.push_back(class_id);
     mvScores.push_back(score);
     mvRects.push_back(rect);
     mvKeyframeIndexs.push_back(kf_index);
-    mvvImgKpts.push_back(img_kpts);
+    mvvImgKpts=img_kpts;
+    mvMapPoints = pMapPoints;
 
 }

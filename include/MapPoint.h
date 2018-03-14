@@ -123,6 +123,8 @@ public:
 
     static std::mutex mGlobalMutex;
     cv::Scalar mPointColor;
+    //object relevant
+    int mObjectIndex = -1;//inited as non object
 
 protected:    
 

@@ -31,6 +31,7 @@
 #include"Map.h"
 #include"Initializer.h"
 #include"pointcloudmapping.h"
+#include "ObjectInstance.h"
 
 #include"Optimizer.h"
 #include"PnPsolver.h"
@@ -571,8 +572,9 @@ void Tracking::Track()
             mlpTemporalPoints.clear();
 
             // Check if we need to insert a new keyframe
-            if(NeedNewKeyFrame())
+            if(NeedNewKeyFrame()) {
                 CreateNewKeyFrame();
+            }
             mNewKfInserted = true;
 
 
@@ -624,17 +626,8 @@ void Tracking::Track()
     }
 
 }
+//
 
-void Tracking::SearchNewObjectInstnces() {
-    if(mCurrentObjInfo.size()<1)
-        return;
-    vector<ObjectInstance> newObjectInstancess;
-    for(auto img_obj:mCurrentObjInfo)
-    {
-        //TODO:
-    }
-
-}
 void Tracking::StereoInitialization()
 {
     if(mCurrentFrame.N>500)
@@ -1319,6 +1312,7 @@ void Tracking::SearchLocalPoints()
         // If the camera has been relocalised recently, perform a coarser search
         if(mCurrentFrame.mnId<mnLastRelocFrameId+2)
             th=5;
+        //TODO: what reason
         matcher.SearchByProjection(mCurrentFrame,mvpLocalMapPoints,th);
     }
 }
