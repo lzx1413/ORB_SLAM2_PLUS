@@ -37,7 +37,7 @@
 #include "Initializer.h"
 #include "MapDrawer.h"
 #include "System.h"
-#include "pointcloudmapping.h"
+#include "PointCloudMapping.h"
 #include "utils.h"
 #include "ObjectManager.h"
 
@@ -227,20 +227,19 @@ protected:
     //object relevant
 public:
     bool mNewKfInserted = false;
-    void SetCurrentObjsInfo(const std::vector<ImgObjectInfo>& objsinfo)
+    void SetCurrentObjsInfo(const std::vector<std::shared_ptr<ImgObjectInfo>>& objsinfo)
     {
         mCurrentObjInfo = objsinfo;
     }
-    std::vector<ImgObjectInfo> GetCurrentObjsInfo()
+    std::vector<std::shared_ptr<ImgObjectInfo>> GetCurrentObjsInfo()
     {
         return mCurrentObjInfo;
     }
 
 private:
-    std::vector<ImgObjectInfo> mCurrentObjInfo;
+    std::vector<std::shared_ptr<ImgObjectInfo>> mCurrentObjInfo;
     shared_ptr<ObjectManager> mObjectManager;
     bool mEnableObject = true;
-    void SearchNewObjectInstnces();
 
 
 

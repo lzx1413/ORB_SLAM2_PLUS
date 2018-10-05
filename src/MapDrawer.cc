@@ -58,7 +58,11 @@ void MapDrawer::DrawMapPoints()
     for(size_t i=0, iend=vpMPs.size(); i<iend;i++)
     {
         cv::Scalar pointColor = vpMPs[i]->mPointColor;
-        glColor3f(pointColor[2]/255.0,pointColor[1]/255.0,pointColor[0]/255.0);
+        if(vpMPs[i]->mObjectIndex!=-1)
+            glColor3f(pointColor[2]/255.0,pointColor[1]/255.0,pointColor[0]/255.0);
+        else
+            glColor3f(1.0,0.0,0.0);
+
         if(vpMPs[i]->isBad() || spRefMPs.count(vpMPs[i]))
             continue;
         cv::Mat pos = vpMPs[i]->GetWorldPos();
@@ -73,7 +77,11 @@ void MapDrawer::DrawMapPoints()
     for(set<MapPoint*>::iterator sit=spRefMPs.begin(), send=spRefMPs.end(); sit!=send; sit++)
     {
         cv::Scalar pointColor = (*sit)->mPointColor;
+        if((*sit)->mObjectIndex!=-1)
         glColor3f(pointColor[2]/255.0,pointColor[1]/255.0,pointColor[0]/255.0);
+        else
+            glColor3f(1.0,0.0,0.0);
+
         if((*sit)->isBad())
             continue;
         cv::Mat pos = (*sit)->GetWorldPos();

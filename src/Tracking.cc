@@ -30,7 +30,7 @@
 #include"Converter.h"
 #include"Map.h"
 #include"Initializer.h"
-#include"pointcloudmapping.h"
+#include"PointCloudMapping.h"
 #include "ObjectInstance.h"
 
 #include"Optimizer.h"
@@ -574,6 +574,8 @@ void Tracking::Track()
             // Check if we need to insert a new keyframe
             if(NeedNewKeyFrame()) {
                 CreateNewKeyFrame();
+                mObjectManager->BuildNewObjects(mImRGB,mCurrentFrame,mCurrentObjInfo);
+
             }
             mNewKfInserted = true;
 

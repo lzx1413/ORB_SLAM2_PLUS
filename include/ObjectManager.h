@@ -23,17 +23,15 @@ public:
     ObjectManager& operator=(const ObjectManager) = delete;
     int InsertNewObject(std::shared_ptr<ObjectInstance> obj);
     int MatchObjectInstances(std::shared_ptr<ObjectInstance> obj,Frame& pCurrentFrame,const Frame& nLastFrame,ORBmatcher& matcher);
-    int BuildNewObjects(const Frame& pCurrentFrame,const std::vector<ImgObjectInfo>& pImgObjsInfo, \
-    std::vector<shared_ptr<ObjectInstance>>& pObjInstances);
+    int BuildNewObjects(const cv::Mat& img,const Frame& pCurrentFrame,const std::vector<std::shared_ptr<ImgObjectInfo>>& pImgObjsInfo);
 
 private:
     std::vector<std::shared_ptr<ObjectInstance>> mvObjectIntances;
     int mMaxObjNum;
     std::set<int> msObjectClasses;
-    std::unordered_map<int,std::vector<int>> mClassInstanceIdMap;
+    std::unordered_map<int,std::vector<int>> mClassInstanceIdMap;//class->list of instance id
     bool mFirstFrame = true;
     int mCurrentObjectIndex = 0;
-
 };
 
 

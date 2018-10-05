@@ -9,14 +9,16 @@
 #include <vector>
 #include <queue>
 #include "MapPoint.h"
+#include "utils.h"
 using namespace ORB_SLAM2;
 class ObjectInstance {
 public:
-    explicit ObjectInstance(int index);
-    explicit ObjectInstance(const int index,const int class_id,const float score,const cv::Rect& rect,const long unsigned int kf_index,\
-    const std::vector<cv::KeyPoint>& img_kpts,const std::vector<MapPoint*>& pvMapPoints);
-    void UpdateObjectInfo(const int class_id,const float score,const cv::Rect rect,const long unsigned int kf_index,const std::vector<cv::KeyPoint>& img_kpts,const std::vector<MapPoint*>& \
-pvMapPoints);
+    explicit ObjectInstance(const int index);
+    explicit ObjectInstance(const int index,const std::shared_ptr<ImgObjectInfo>& pImgObjectInfo, \
+    const long unsigned int kf_index,const std::vector<MapPoint*>& pvMapPoints);
+
+    void UpdateObjectInfo(const std::shared_ptr<ImgObjectInfo>& pImgObjectInfo, \
+    const long unsigned int kf_index,const std::vector<MapPoint*>&pvMapPoints);
     int GetClassId()
     {
         return mClassId;
@@ -34,12 +36,10 @@ pvMapPoints);
 private:
     int mIndex;
     int mClassId;
-    std::vector<long unsigned int> mvKeyframeIndexs;
-    std::vector<float> mvScores;
-    std::vector<int> mvClassIds;
-    std::vector<cv::Rect> mvRects;
-    std::vector<cv::KeyPoint> mvvImgKpts;
+    std::vector<long unsigned int> mvKeyframeIndexes;
+    std::set<long unsigned  int>mvMapPointIndexes;
     std::vector<MapPoint*> mvMapPoints;
+    std::unordered_map<long unsigned int,std::shared_ptr<ImgObjectInfo>> mmKeyFrameOBjectInfo;
 
 };
 

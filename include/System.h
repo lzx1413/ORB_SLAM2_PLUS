@@ -35,7 +35,7 @@
 #include "KeyFrameDatabase.h"
 #include "ORBVocabulary.h"
 #include "Viewer.h"
-#include "pointcloudmapping.h"
+#include "PointCloudMapping.h"
 #include "utils.h"
 #include "ObjectManager.h"
 
@@ -192,7 +192,7 @@ private:
 private:
     shared_ptr<ObjectManager> mObjectManager;
 public:
-    void SetCurrentObjsInfo(const std::vector<ImgObjectInfo>& objsinfo);
+    void SetCurrentObjsInfo(const std::vector<std::shared_ptr<ImgObjectInfo>>& objsinfo);
 };
 
 }// namespace ORB_SLAM

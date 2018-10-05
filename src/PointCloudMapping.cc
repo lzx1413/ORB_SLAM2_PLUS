@@ -17,7 +17,7 @@
  * 
  */
 
-#include "pointcloudmapping.h"
+#include "PointCloudMapping.h"
 #include <KeyFrame.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <pcl/visualization/cloud_viewer.h>
@@ -41,13 +41,13 @@ namespace ORB_SLAM2 {
     }
 
     void PointCloudMapping::insertKeyFrame(KeyFrame *kf, cv::Mat &color, cv::Mat &depth) {
-        cout << "receive a keyframe, id = " << kf->mnId << endl;
+        //cout << "receive a keyframe, id = " << kf->mnId << endl;
         unique_lock<mutex> lock(keyframeMutex);
-        cout << "kf push_back" << endl;
+        //cout << "kf push_back" << endl;
         keyframes.push_back(kf);
-        cout << "color push_back" << endl;
+        //cout << "color push_back" << endl;
         colorImgs.push_back(color.clone());
-        cout << "depth push_back" << endl;
+        //cout << "depth push_back" << endl;
         depthImgs.push_back(depth.clone());
 
         keyFrameUpdated.notify_one();

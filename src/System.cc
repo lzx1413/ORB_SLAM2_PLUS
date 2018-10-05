@@ -575,7 +575,7 @@ bool System::LoadMap(const string &filename)
     in.close();
     return true;
 }
-void System::SetCurrentObjsInfo(const std::vector<ImgObjectInfo>& objsinfo)
+void System::SetCurrentObjsInfo(const std::vector<std::shared_ptr<ImgObjectInfo>>& objsinfo)
 {
     mpTracker->SetCurrentObjsInfo(objsinfo);
 

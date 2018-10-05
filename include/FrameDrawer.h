@@ -29,6 +29,7 @@
 #include<opencv2/features2d/features2d.hpp>
 
 #include<mutex>
+#include <memory>
 #include "utils.h"
 
 
@@ -57,7 +58,7 @@ protected:
     cv::Mat mIm;
     int N;
     vector<cv::KeyPoint> mvCurrentKeys;
-    std::vector<ImgObjectInfo> mCurrentObjsInfo;
+    std::vector<std::shared_ptr<ImgObjectInfo>> mCurrentObjsInfo;
     vector<bool> mvbMap, mvbVO;
     bool mbOnlyTracking;
     int mnTracked, mnTrackedVO;
