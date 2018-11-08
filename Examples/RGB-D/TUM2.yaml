@@ -57,6 +57,8 @@ ORBextractor.minThFAST: 7
 #--------------------------------------------------------------------------------------------
 # Viewer Parameters
 #--------------------------------------------------------------------------------------------
+
+EnabelView: 0
 Viewer.KeyFrameSize: 0.05
 Viewer.KeyFrameLineWidth: 1
 Viewer.GraphLineWidth: 0.9
@@ -71,4 +73,26 @@ Viewer.ViewpointF: 500
 #--------------------------------------------------------------------------------------------
 # PointCloud Parameters
 #--------------------------------------------------------------------------------------------
+ShowPointCloud: 1
 PointCloudMapping.Resolution: 0.03
+
+
+#--------------------------------------------------------------------------------------------
+# Object Parameters
+#--------------------------------------------------------------------------------------------
+InsSeg.WeightPath: "/home/zuoxin/workspace/project/ORB_SLAM2_PLUS/Examples/RGB-D/mask_rcnn_resnet18_v1b_tum-0000.params"
+InsSeg.ModelPath: "/home/zuoxin/workspace/project/ORB_SLAM2_PLUS/Examples/RGB-D/mask_rcnn_resnet18_v1b_tum-symbol.json"
+InsSeg.NameFilePath: "/home/zuoxin/workspace/project/ORB_SLAM2_PLUS/Examples/RGB-D/coco_names.txt"
+InsSeg.ModelType: "mxnet"
+InsSeg.UseGPU: 1
+InsSeg.MinSize: 600
+InsSeg.MaxSize: 800
+InsSeg.NMSThr: 0.45
+InsSeg.ConfThr: 0.05
+InsSeg.NumClasses: 9
+InsSeg.MaskSize: 14
+Object.MatchThr: 0.35
+Object.MaxLostNum: 5
+Object.MaxObjNum: 100
+EnableObject: 1
+

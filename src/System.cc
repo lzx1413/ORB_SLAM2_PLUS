@@ -112,16 +112,18 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
-    if(this->show_dense_map) {
+    enable_object = fsSettings["EnableObject"];
+    if(enable_object == 1) {
         //TODO:refact this part
-        mpPointCloudMapping = make_shared<PointCloudMapping>(resolution);
-        mObjectManager = make_shared<ObjectManager>(100);
+        mpPointCloudMapping = make_shared<PointCloudMapping>(resolution, enable_object);
+        mObjectManager = make_shared<ObjectManager>(100,5,0.5);
+        bool show_cloudpints = (int(fsSettings["ShowPointCloud"]) == 1);
         mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
-                                 mpMap,mpPointCloudMapping, mpKeyFrameDatabase, strSettingsFile, mSensor,mObjectManager,bReuseMap);
+                                 mpMap,mpPointCloudMapping, mpKeyFrameDatabase, strSettingsFile, mSensor,mObjectManager,bReuseMap,show_cloudpints);
     }
     else {
         mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
-                                 mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor, bReuseMap);
+                                 mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor, bReuseMap, false);
     }
 
     //Initialize the Local Mapping thread and launch
@@ -149,6 +151,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     mpLoopCloser->SetTracker(mpTracker);
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
+    //Init instance seg model
+
 }
 
 cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)

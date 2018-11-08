@@ -49,6 +49,7 @@ public:
 
     // Draw last processed frame.
     cv::Mat DrawFrame();
+    std::vector<std::shared_ptr<ImgObjectInfo>> mCurrentObjsInfo;
 
 protected:
 
@@ -58,7 +59,6 @@ protected:
     cv::Mat mIm;
     int N;
     vector<cv::KeyPoint> mvCurrentKeys;
-    std::vector<std::shared_ptr<ImgObjectInfo>> mCurrentObjsInfo;
     vector<bool> mvbMap, mvbVO;
     bool mbOnlyTracking;
     int mnTracked, mnTrackedVO;

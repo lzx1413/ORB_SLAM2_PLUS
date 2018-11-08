@@ -23,9 +23,10 @@
 #include <pcl/visualization/cloud_viewer.h>
 #include "Converter.h"
 namespace ORB_SLAM2 {
-    PointCloudMapping::PointCloudMapping(double resolution_) {
+    PointCloudMapping::PointCloudMapping(double resolution_, int enable_object_) {
         this->resolution = resolution_;
         voxel.setLeafSize(resolution, resolution, resolution);
+        enable_object = enable_object_;
         globalMap = boost::make_shared<PointCloud>();
 
         viewerThread = make_shared<thread>(bind(&PointCloudMapping::viewer, this));
@@ -52,6 +53,19 @@ namespace ORB_SLAM2 {
 
         keyFrameUpdated.notify_one();
     }
+    void PointCloudMapping::insertKeyFrame(KeyFrame *kf, cv::Mat &color, cv::Mat &depth, std::vector<std::shared_ptr<ImgObjectInfo>>& objects) {
+        //cout << "receive a keyframe, id = " << kf->mnId << endl;
+        unique_lock<mutex> lock(keyframeMutex);
+        //cout << "kf push_back" << endl;
+        keyframes.push_back(kf);
+        //cout << "color push_back" << endl;
+        colorImgs.push_back(color.clone());
+        //cout << "depth push_back" << endl;
+        depthImgs.push_back(depth.clone());
+        object_list.push_back(objects);
+
+        keyFrameUpdated.notify_one();
+    }
 
     pcl::PointCloud<PointCloudMapping::PointT>::Ptr
     PointCloudMapping::generatePointCloud(KeyFrame *kf, cv::Mat &color, cv::Mat &depth) {
@@ -66,11 +80,9 @@ namespace ORB_SLAM2 {
                 p.z = d;
                 p.x = (n - kf->cx) * p.z / kf->fx;
                 p.y = (m - kf->cy) * p.z / kf->fy;
-
                 p.b = color.ptr<uchar>(m)[n * 3];
                 p.g = color.ptr<uchar>(m)[n * 3 + 1];
                 p.r = color.ptr<uchar>(m)[n * 3 + 2];
-
                 tmp->points.push_back(p);
             }
         }
@@ -83,6 +95,42 @@ namespace ORB_SLAM2 {
         cout << "generate point cloud for kf " << kf->mnId << ", size=" << cloud->points.size() << endl;
         return cloud;
     }
+
+    pcl::PointCloud<PointCloudMapping::PointT>::Ptr
+    PointCloudMapping::generatePointCloud(KeyFrame *kf, cv::Mat &color, cv::Mat &depth, std::vector<std::shared_ptr<ImgObjectInfo>> &objects) {
+        PointCloud::Ptr tmp(new PointCloud());
+        //1.draw object on the image
+        for(auto object:objects)
+        {
+            auto contour = object->mask_contours;
+            auto label_color = GetLabelColor(object->class_id);
+            cv::drawContours(color,contour,-1,label_color,-1);
+        }
+        //2.generate cloud points
+        for (int m = 0; m < depth.rows; m += 3) {
+            for (int n = 0; n < depth.cols; n += 3) {
+                float d = depth.ptr<float>(m)[n];
+                if (d < 0.01 || d > 10)
+                    continue;
+                PointT p;
+                p.z = d;
+                p.x = (n - kf->cx) * p.z / kf->fx;
+                p.y = (m - kf->cy) * p.z / kf->fy;
+                p.b = color.ptr<uchar>(m)[n * 3];
+                p.g = color.ptr<uchar>(m)[n * 3 + 1];
+                p.r = color.ptr<uchar>(m)[n * 3 + 2];
+                tmp->points.push_back(p);
+            }
+        }
+
+    Eigen::Isometry3d T = ORB_SLAM2::Converter::toSE3Quat(kf->GetPose());
+    PointCloud::Ptr cloud(new PointCloud);
+    pcl::transformPointCloud(*tmp, *cloud, T.inverse().matrix());
+    cloud->is_dense = false;
+
+    cout << "generate point cloud for kf " << kf->mnId << ", size=" << cloud->points.size() << endl;
+    return cloud;
+}
 
 
     void PointCloudMapping::viewer() {
@@ -107,8 +155,14 @@ namespace ORB_SLAM2 {
             }
 
             for (size_t i = lastKeyframeSize; i < N; i++) {
+                if (enable_object == 1)
+                {
+                    PointCloud::Ptr p = generatePointCloud(keyframes[i], colorImgs[i], depthImgs[i], object_list[i]);
+                *globalMap += *p;
+                } else {
                 PointCloud::Ptr p = generatePointCloud(keyframes[i], colorImgs[i], depthImgs[i]);
                 *globalMap += *p;
+                }
             }
             PointCloud::Ptr tmp(new PointCloud());
             voxel.setInputCloud(globalMap);

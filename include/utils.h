@@ -11,9 +11,12 @@
 //std::vector<int> allow_classes{};
 struct ImgObjectInfo{
     int class_id;
-    float socre;
+    int instance_id;
+    float score;
     cv::Rect bbox;
+    cv::Size img_size;
     std::vector<std::vector<cv::Point>> mask_contours;
+    cv::Mat mask;
     std::vector<cv::KeyPoint> key_points;
     long unsigned int frame_id;
     int object_id = -1;
@@ -29,5 +32,6 @@ struct ImgObjectInfo{
 
 int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<std::shared_ptr<ImgObjectInfo>>& objs_info);
 void ShowObjectOnOneImage(cv::Mat& img,const std::vector<std::shared_ptr<ImgObjectInfo>>& objs_info);
+cv::Scalar GetLabelColor(int label);
 
 #endif //ORB_SLAM2_UTILS_H

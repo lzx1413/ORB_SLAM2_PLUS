@@ -80,6 +80,10 @@ cv::Mat FrameDrawer::DrawFrame()
     //Draw
     if(state==Tracking::NOT_INITIALIZED) //INITIALIZING
     {
+        if(mCurrentObjsInfo.size()>0)
+        {
+            ShowObjectOnOneImage(im,mCurrentObjsInfo);
+        }
         for(unsigned int i=0; i<vMatches.size(); i++)
         {
             if(vMatches[i]>=0)

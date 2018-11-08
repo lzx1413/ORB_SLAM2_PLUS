@@ -7,6 +7,9 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include "mxnet_utils.h"
+std::map<int,cv::Scalar> colors_;
+int num_classes_ = 9;
 int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<std::shared_ptr<ImgObjectInfo>>& objs_info)
 {
     std::vector<int> allow_classes{40,67,66};
@@ -33,7 +36,7 @@ int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<std::sha
             continue;
         std::shared_ptr<ImgObjectInfo> new_obj_info = std::make_shared<ImgObjectInfo>();
         new_obj_info->class_id = class_id;
-        new_obj_info->socre = current["score"].asFloat();
+        new_obj_info->score = current["score"].asFloat();
         float x_min = current["bbox"][0].asFloat();
         float y_min = current["bbox"][1].asFloat();
         float x_max = current["bbox"][2].asFloat();
@@ -57,12 +60,47 @@ int ParsingObjectInfoFromFile(const std::string & file_path,std::vector<std::sha
     }
     return 0;
 }
-void ShowObjectOnOneImage(cv::Mat& img,const std::vector<std::shared_ptr<ImgObjectInfo>>& objs_info)
+
+cv::Scalar GetLabelColor(int class_label)
 {
-    for(auto obj_info:objs_info)
+    std::mt19937 eng;
+    std::uniform_real_distribution<float> rng(0, 1);
+    float hue = rng(eng);
+    if (colors_.find(class_label) == colors_.end()) {
+        // create a new color
+        int csize = static_cast<int>(num_classes_);
+        if (csize > 0) {
+            float hue =  float(class_label)/ float(csize);
+            colors_[class_label] = HSV2BGR(cv::Scalar(hue * 255, 0.75, 0.95));
+        } else {
+            // generate color for this id
+            hue += 0.618033988749895;  // golden ratio
+            hue = fmod(hue, 1.0);
+            colors_[class_label] = HSV2BGR(cv::Scalar(hue * 255, 0.75, 0.95));
+        }
+    }
+    auto color = colors_[class_label];
+    return color;
+
+}
+void ShowObjectOnOneImage(cv::Mat& img,const std::vector<std::shared_ptr<ImgObjectInfo>>& objects)
+{
+    for(auto object : objects)
     {
-        cv::rectangle(img,obj_info->bbox,cv::Scalar(0,255,0));
-        cv::drawContours(img,obj_info->mask_contours,-1,cv::Scalar(0,0,255),8);
-        cv::putText(img,std::to_string(obj_info->class_id),obj_info->bbox.tl(),cv::FONT_HERSHEY_SIMPLEX,1,cv::Scalar(0,0,255));
+        auto class_label = object->class_id;
+        auto box = object->bbox;
+        auto color = GetLabelColor(class_label);
+        cv::rectangle(img, box.tl(), box.br(), color, 2);
+        cv::putText(img,std::to_string(object->instance_id),box.tl(),0,1,cv::Scalar(0,0,0));
+        cv::Mat roi_img = img(box);
+        cv::drawContours(roi_img,object->mask_contours,-1,color,-1);
+        cv::Mat mask = object->mask;
+        cv::cvtColor(object->mask, mask, CV_GRAY2BGR);
+        if(mask.size() != box.size())
+        {
+            std::cout<<mask.size()<<" vs "<<box.size()<<std::endl;
+
+        }
+        cv::addWeighted(roi_img, 0.5, mask, 0.5, 0, roi_img);
     }
 }

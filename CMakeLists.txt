@@ -27,14 +27,17 @@ else()
 endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
+set(CMAKE_PREFIX_PATH "/usr/local/opencv3/share/OpenCV")
+find_package(OpenCV 3.4.3 REQUIRED)
+#if(NOT OpenCV_FOUND)
+#   find_package(OpenCV 2.4.3 QUIET)
+#   if(NOT OpenCV_FOUND)
+#      message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
+#   endif()
+#endif()
+#set(OPENCV_LIB_PATH "/usr/local/opencv3/lib")
 
-find_package(OpenCV 3.0 QUIET)
-if(NOT OpenCV_FOUND)
-   find_package(OpenCV 2.4.3 QUIET)
-   if(NOT OpenCV_FOUND)
-      message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
-   endif()
-endif()
+#set(OPENCV_INCLUDE_PATH "/usr/local/opencv3/include")
 
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
@@ -46,9 +49,12 @@ ${PROJECT_SOURCE_DIR}/include
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
         ${PCL_INCLUDE_DIRS}
+#${OPENCV_INCLUDE_PATH}
 )
 add_definitions(${PCL_DEFINITIONS})
-link_directories(${PCL_LIBRARY_DIRS})
+link_directories(${PCL_LIBRARY_DIRS}
+ #       ${OPENCV_LIB_PATH}
+        )
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
 add_library(${PROJECT_NAME} SHARED
@@ -71,7 +77,7 @@ src/KeyFrameDatabase.cc
 src/Sim3Solver.cc
 src/Initializer.cc
 src/Viewer.cc
-        src/pointcloudmapping.cc)
+        src/PointCloudMapping.cc src/InstanceSeg.cc include/InstanceSeg.h include/mxnet_utils.h)
 
 target_link_libraries(${PROJECT_NAME}
 ${OpenCV_LIBS}
@@ -79,7 +85,7 @@ ${EIGEN3_LIBS}
 ${Pangolin_LIBRARIES}
 ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
-        ${PCL_LIBRARIES}
+ ${MXNET_LIBS} ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}       ${PCL_LIBRARIES}
 )
 
 message(STATUS "Compile With map save/load function")
@@ -92,12 +98,8 @@ target_link_libraries(${PROJECT_NAME} ${BOOST_SERIALIZATION})
 # Build examples
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/RGB-D)
-add_executable(rgbd_tum_obj
-        Examples/OBJSLAM/tum_rgbd_obj.cc
-        src/ObjectInstance.cc include/ObjectInstance.h src/ObjectManager.cc include/ObjectManager.h include/utils.h src/utils.cc)
-target_link_libraries(rgbd_tum_obj ${PROJECT_NAME} jsoncpp)
 add_executable(rgbd_tum
-Examples/RGB-D/rgbd_tum.cc)
+Examples/RGB-D/rgbd_tum.cc Examples/RGB-D/instance_seg_test.cpp)
 target_link_libraries(rgbd_tum ${PROJECT_NAME})
 add_executable(rgbd_tum_dense
         Examples/RGB-D/rgbd_my.cc)
@@ -108,6 +110,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Stereo)
 add_executable(stereo_kitti
 Examples/Stereo/stereo_kitti.cc)
 target_link_libraries(stereo_kitti ${PROJECT_NAME})
+
 
 add_executable(stereo_euroc
 Examples/Stereo/stereo_euroc.cc)
@@ -133,6 +136,33 @@ target_link_libraries(mono_euroc ${PROJECT_NAME})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Vocabulary)
 add_executable(bin_vocabulary Vocabulary/bin_vocabulary.cpp)
 target_link_libraries(bin_vocabulary ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so ${OpenCV_LIBS})
+
+set(MXNET_ROOT /home/zuoxin/workspace/incubator-mxnet/)
+FIND_PACKAGE(CUDA REQUIRED)
+include_directories(
+        ${MXNET_ROOT}/include
+        ${MXNET_ROOT}/cpp-package/include
+        ${MXNET_ROOT}/3rdparty/dlpack/include
+        ${MXNET_ROOT}/3rdparty/dmlc-core/include
+        ${MXNET_ROOT}/3rdparty/mkldnn/include
+        ${MXNET_ROOT}/3rdparty/mshadow
+        ${MXNET_ROOT}/3rdparty/tvm/nnvm/include
+        Examples/RGB-D/
+)
+SET(CMAKE_FIND_LIBRARY_PREFIXES "lib")
+find_library(MXNET_LIBS NAMES mxnet HINTS "${MXNET_ROOT}/lib")
+message(STATUS MXNET_LIBS: ${MXNET_LIBS})
+add_executable(mx_instance Examples/RGB-D/mx_instance_seg.cpp )
+target_link_libraries(mx_instance ${OpenCV_LIBS} ${MXNET_LIBS} ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+#test case
+add_executable(instance_seg_test
+        Examples/RGB-D/instance_seg_test.cpp src/InstanceSeg.cc)
+target_link_libraries(instance_seg_test ${OpenCV_LIBS} ${MXNET_LIBS} ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+
+add_executable(rgbd_tum_obj
+        Examples/OBJSLAM/tum_rgbd_obj.cc
+        src/ObjectInstance.cc include/ObjectInstance.h src/ObjectManager.cc include/ObjectManager.h include/utils.h src/utils.cc src/InstanceSeg.cc include/InstanceSeg.h)
+target_link_libraries(rgbd_tum_obj ${PROJECT_NAME} jsoncpp ${OpenCV_LIBS} ${MXNET_LIBS} ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
 
 if(USE_EXAMPLE_WEBCAM)
     find_package(PkgConfig REQUIRED)

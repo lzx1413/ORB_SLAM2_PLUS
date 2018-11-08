@@ -46,10 +46,10 @@ using namespace std;
 namespace ORB_SLAM2
 {
 
-Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Map *pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, bool bReuseMap):
+Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Map *pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, bool bReuseMap, bool showPointCloud):
     mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
     mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)), mpSystem(pSys), mpViewer(NULL),
-    mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0)
+    mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0), mShowPointCloud(showPointCloud)
 {
     // Load camera parameters from settings file
 
@@ -150,13 +150,36 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
     }
     if (bReuseMap)
         mState = LOST;
+    mEnableObject = fSettings["EnableObject"];
+    // init instance seg model
+    if(mEnableObject == 1) {
+        std::string model_path = fSettings["InsSeg.WeightPath"];
+        std::string config_path = fSettings["InsSeg.ModelPath"];
+        cv::Scalar mean{0, 0, 0};
+        std::string name_file_path = "InsSeg.NameFilePath";
+        float nms_th = fSettings["InsSeg.NMSThr"];
+        float conf_th = fSettings["InsSeg.ConfThr"];
+        int num_classes = fSettings["InsSeg.NumClasses"];
+        int mask_size = fSettings["InsSeg.MaskSize"];
+        int use_gpu = fSettings["InsSeg.UseGPU"];
+        std::string model_type = fSettings["InsSeg.ModelType"];
+        int min_size = fSettings["InsSeg.MinSize"];
+        int max_size = fSettings["InsSeg.MaxSize"];
+        mInsModel = InstanceSeg(model_type, model_path, config_path, true, mean, 1, nms_th, conf_th, name_file_path,
+                                min_size, max_size, num_classes, mask_size);
+        int max_obj_num = fSettings["Object.MaxObjNum"];
+        int max_lost_num = fSettings["Object.MaxLostNum"];
+        float match_thr = fSettings["Object.MatchThr"];
+        mObjectManager = ObjectManager(max_obj_num, max_lost_num, match_thr);
+    }
+
 }
     Tracking::Tracking(System *pSys, ORBVocabulary *pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Map *pMap,
                        shared_ptr<PointCloudMapping> pPointCloud, KeyFrameDatabase *pKFDB, const string &strSettingPath,
-                       const int sensor,shared_ptr<ObjectManager> pObjectManger, bool bReuseMap):mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
+                       const int sensor,shared_ptr<ObjectManager> pObjectManger, bool bReuseMap, bool showPointCloud):mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
                 mpPointCloudMapping( pPointCloud ),
                 mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)), mpSystem(pSys),
-                mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0),mObjectManager(pObjectManger)
+                mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0),mShowPointCloud(showPointCloud)
     {
         // Load camera parameters from settings file
 
@@ -257,6 +280,28 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
         }
         if (bReuseMap)
             mState = LOST;
+        mEnableObject = fSettings["EnableObject"];
+        // init instance seg model
+        if(mEnableObject == 1) {
+            std::string model_path = fSettings["InsSeg.WeightPath"];
+            std::string config_path = fSettings["InsSeg.ModelPath"];
+            cv::Scalar mean{0, 0, 0};
+            std::string name_file_path = "InsSeg.NameFilePath";
+            float nms_th = fSettings["InsSeg.NMSThr"];
+            float conf_th = fSettings["InsSeg.ConfThr"];
+            int num_classes = fSettings["InsSeg.NumClasses"];
+            int mask_size = fSettings["InsSeg.MaskSize"];
+            int use_gpu = fSettings["InsSeg.UseGPU"];
+            std::string model_type = fSettings["InsSeg.ModelType"];
+            int min_size = fSettings["InsSeg.MinSize"];
+            int max_size = fSettings["InsSeg.MaxSize"];
+            mInsModel = InstanceSeg(model_type, model_path, config_path, true, mean, 1, nms_th, conf_th, name_file_path,
+                                    min_size, max_size, num_classes, mask_size);
+            int max_obj_num = fSettings["Object.MaxObjNum"];
+            int max_lost_num = fSettings["Object.MaxLostNum"];
+            float match_thr = fSettings["Object.MatchThr"];
+            mObjectManager = ObjectManager(max_obj_num, max_lost_num, match_thr);
+        }
 
     }
 
@@ -393,7 +438,12 @@ void Tracking::Track()
 
     // Get Map Mutex -> Map cannot be changed
     unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
-
+    if(mEnableObject == 1) {
+        std::vector<std::shared_ptr<ImgObjectInfo>> objs_info;
+        mInsModel.RunInstanceSeg(mImRGB, objs_info);
+        mObjectManager.UpdateObjectInstances(mCurrentFrame,objs_info);
+        mCurrentObjInfo = objs_info;
+    }
     if(mState==NOT_INITIALIZED)
     {
         if(mSensor==System::STEREO || mSensor==System::RGBD)
@@ -572,9 +622,11 @@ void Tracking::Track()
             mlpTemporalPoints.clear();
 
             // Check if we need to insert a new keyframe
+            //auto show_img = mInsModel.DrawObjects(mImRGB,objs_info);
+            //cv::imshow("result", show_img);
+            //cv::waitKey(10);
             if(NeedNewKeyFrame()) {
                 CreateNewKeyFrame();
-                mObjectManager->BuildNewObjects(mImRGB,mCurrentFrame,mCurrentObjInfo);
 
             }
             mNewKfInserted = true;
@@ -1259,8 +1311,12 @@ void Tracking::CreateNewKeyFrame()
     mpLocalMapper->InsertKeyFrame(pKF);
 
     mpLocalMapper->SetNotStop(false);
-    if(mSensor!=System::MONOCULAR)
-        mpPointCloudMapping->insertKeyFrame(pKF,this->mImRGB,this->mImDepth);
+    if(mSensor!=System::MONOCULAR && mShowPointCloud) {
+        if(mEnableObject)
+            mpPointCloudMapping->insertKeyFrame(pKF, this->mImRGB, this->mImDepth, this->mCurrentObjInfo);
+        else
+            mpPointCloudMapping->insertKeyFrame(pKF, this->mImRGB, this->mImDepth);
+    }
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
     mNewKfInserted = true;

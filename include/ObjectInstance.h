@@ -14,11 +14,15 @@ using namespace ORB_SLAM2;
 class ObjectInstance {
 public:
     explicit ObjectInstance(const int index);
+    explicit ObjectInstance(const int index, const long unsigned int kf_index, const std::shared_ptr<ImgObjectInfo>& pImgObjectInfo);
     explicit ObjectInstance(const int index,const std::shared_ptr<ImgObjectInfo>& pImgObjectInfo, \
     const long unsigned int kf_index,const std::vector<MapPoint*>& pvMapPoints);
 
     void UpdateObjectInfo(const std::shared_ptr<ImgObjectInfo>& pImgObjectInfo, \
     const long unsigned int kf_index,const std::vector<MapPoint*>&pvMapPoints);
+
+    void UpdateObjectInfo(const std::shared_ptr<ImgObjectInfo>& pImgObjectInfo, \
+    const long unsigned int kf_index);
     int GetClassId()
     {
         return mClassId;
@@ -31,6 +35,18 @@ public:
     {
         return mIndex;
     }
+    cv::Rect GetLastRect()
+    {
+        if(mvKeyframeIndexes.size() > 0)
+        {
+            return mmKeyFrameObjectInfo[mvKeyframeIndexes[mvKeyframeIndexes.size()-1]]->bbox;
+        }
+    }
+    long unsigned int GetLastFrameID()
+    {
+        if(mvKeyframeIndexes.size()>0)
+            return mvKeyframeIndexes[mvKeyframeIndexes.size()-1];
+    }
 
 
 private:
@@ -39,7 +55,7 @@ private:
     std::vector<long unsigned int> mvKeyframeIndexes;
     std::set<long unsigned  int>mvMapPointIndexes;
     std::vector<MapPoint*> mvMapPoints;
-    std::unordered_map<long unsigned int,std::shared_ptr<ImgObjectInfo>> mmKeyFrameOBjectInfo;
+    std::unordered_map<long unsigned int,std::shared_ptr<ImgObjectInfo>> mmKeyFrameObjectInfo;
 
 };
 

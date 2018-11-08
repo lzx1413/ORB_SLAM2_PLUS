@@ -40,6 +40,7 @@
 #include "PointCloudMapping.h"
 #include "utils.h"
 #include "ObjectManager.h"
+#include "InstanceSeg.h"
 
 #include <mutex>
 using  namespace ORB_SLAM2;
@@ -59,9 +60,9 @@ class Tracking
 public:
 
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,
-             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, bool bReuseMap=false);
+             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, bool bReuseMap=false, bool showPointCloud=false);
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,shared_ptr<PointCloudMapping> pPointCloud,
-             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor,shared_ptr<ObjectManager> pObjectManger, bool bReuseMap=false);
+             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor,shared_ptr<ObjectManager> pObjectManger, bool bReuseMap=false, bool showPointCloud=false);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
     cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);
@@ -238,8 +239,10 @@ public:
 
 private:
     std::vector<std::shared_ptr<ImgObjectInfo>> mCurrentObjInfo;
-    shared_ptr<ObjectManager> mObjectManager;
-    bool mEnableObject = true;
+    ObjectManager mObjectManager;
+    int mEnableObject ;
+    InstanceSeg mInsModel;
+    bool mShowPointCloud;
 
 
 

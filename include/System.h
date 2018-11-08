@@ -40,8 +40,11 @@
 #include "ObjectManager.h"
 
 #include "BoostArchiver.h"
+
+#include "InstanceSeg.h"
 // for map file io
 #include <fstream>
+
 namespace ORB_SLAM2
 {
 
@@ -189,6 +192,11 @@ private:
     std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
     std::mutex mMutexState;
     //object relevant
+    // show options
+    bool enabel_view;
+    bool show_point_cloud;
+    int enable_object;
+
 private:
     shared_ptr<ObjectManager> mObjectManager;
 public:

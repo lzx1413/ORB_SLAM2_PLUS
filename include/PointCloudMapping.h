@@ -26,17 +26,18 @@
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
 #include <condition_variable>
-
+#include "utils.h"
 namespace ORB_SLAM2 {
     class PointCloudMapping {
     public:
         typedef pcl::PointXYZRGBA PointT;
         typedef pcl::PointCloud<PointT> PointCloud;
 
-        PointCloudMapping(double resolution_);
+        PointCloudMapping(double resolution_, int enable_object);
 
         // 插入一个keyframe，会更新一次地图
         void insertKeyFrame(KeyFrame *kf, cv::Mat &color, cv::Mat &depth);
+        void insertKeyFrame(KeyFrame *kf, cv::Mat &color, cv::Mat &depth, std::vector<std::shared_ptr<ImgObjectInfo>>& img_info);
 
         void shutdown();
 
@@ -44,6 +45,7 @@ namespace ORB_SLAM2 {
 
     protected:
         PointCloud::Ptr generatePointCloud(KeyFrame *kf, cv::Mat &color, cv::Mat &depth);
+        PointCloud::Ptr generatePointCloud(KeyFrame *kf, cv::Mat &color, cv::Mat &depth, std::vector<std::shared_ptr<ImgObjectInfo>>& objects);
 
         PointCloud::Ptr globalMap;
         shared_ptr<thread> viewerThread;
@@ -58,11 +60,13 @@ namespace ORB_SLAM2 {
         vector<KeyFrame *> keyframes;
         vector<cv::Mat> colorImgs;
         vector<cv::Mat> depthImgs;
+        std::vector<vector<std::shared_ptr<ImgObjectInfo>>> object_list;
         mutex keyframeMutex;
         uint16_t lastKeyframeSize = 0;
 
         double resolution = 0.04;
         pcl::VoxelGrid<PointT> voxel;
+        int enable_object;
     };
 }
 
