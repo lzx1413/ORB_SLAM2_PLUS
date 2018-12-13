@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
@@ -22,6 +22,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <pcl/visualization/cloud_viewer.h>
 #include "Converter.h"
+#include "utils.h"
 namespace ORB_SLAM2 {
     PointCloudMapping::PointCloudMapping(double resolution_, int enable_object_) {
         this->resolution = resolution_;
@@ -100,12 +101,7 @@ namespace ORB_SLAM2 {
     PointCloudMapping::generatePointCloud(KeyFrame *kf, cv::Mat &color, cv::Mat &depth, std::vector<std::shared_ptr<ImgObjectInfo>> &objects) {
         PointCloud::Ptr tmp(new PointCloud());
         //1.draw object on the image
-        for(auto object:objects)
-        {
-            auto contour = object->mask_contours;
-            auto label_color = GetLabelColor(object->class_id);
-            cv::drawContours(color,contour,-1,label_color,-1);
-        }
+        ShowObjectOnOneImage(color,objects);
         //2.generate cloud points
         for (int m = 0; m < depth.rows; m += 3) {
             for (int n = 0; n < depth.cols; n += 3) {
@@ -127,7 +123,7 @@ namespace ORB_SLAM2 {
     PointCloud::Ptr cloud(new PointCloud);
     pcl::transformPointCloud(*tmp, *cloud, T.inverse().matrix());
     cloud->is_dense = false;
-
+        cout<<"object masks"<<endl;
     cout << "generate point cloud for kf " << kf->mnId << ", size=" << cloud->points.size() << endl;
     return cloud;
 }

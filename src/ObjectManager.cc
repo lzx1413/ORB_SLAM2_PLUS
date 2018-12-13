@@ -89,6 +89,10 @@ float ObjectManager::CalculateIOU(const cv::Rect& a, const cv::Rect& b)
     return i_area/(a.area()+b.area()-i_area);
 
 }
+
+float ObjectManager::CalculateDist(const cv::Rect &a, const cv::Rect &b) {
+    return sqrt((b.x-a.x)^2+(b.y-a.y)^2);
+}
 int ObjectManager::UpdateObjectInstances(Frame &pCurrentFrame,
                                          std::vector<std::shared_ptr<ImgObjectInfo>> &pImgObjsInfo) {
     if (pImgObjsInfo.size() == 0)

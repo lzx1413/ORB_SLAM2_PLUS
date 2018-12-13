@@ -41,10 +41,11 @@ private:
     bool mFirstFrame = true;
     int mCurrentObjectIndex = 0;
     int mLostNumThr = 5;
-    float mMatchTHr = 0.5;
+    float mMatchTHr = 0.3;
     void ObjectProjection(KeyFrame* pKF, cv::Mat Scw, const std::vector<MapPoint*> & vpPoints, std::vector<cv::Point>& imPoints);
     void CaculateWorldPoints(KeyFrame* pKF, cv::Mat Scw, const std::vector<cv::Point>& imPoints, std::vector<MapPoint*> &vpPoints, cv::Mat & depth);
     float CalculateIOU(const cv::Rect& a, const cv::Rect& b);
+    float CalculateDist(const cv::Rect& a, const cv::Rect& b);
 };
 
 

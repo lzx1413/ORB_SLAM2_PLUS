@@ -91,7 +91,7 @@ void ShowObjectOnOneImage(cv::Mat& img,const std::vector<std::shared_ptr<ImgObje
         auto box = object->bbox;
         auto color = GetLabelColor(class_label);
         cv::rectangle(img, box.tl(), box.br(), color, 2);
-        cv::putText(img,std::to_string(object->instance_id),box.tl(),0,1,cv::Scalar(0,0,0));
+        //cv::putText(img,std::to_string(object->instance_id),box.tl(),0,1,cv::Scalar(0,0,0));
         cv::Mat roi_img = img(box);
         cv::drawContours(roi_img,object->mask_contours,-1,color,-1);
         cv::Mat mask = object->mask;

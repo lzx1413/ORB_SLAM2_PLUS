@@ -35,6 +35,7 @@
 
 #include"Optimizer.h"
 #include"PnPsolver.h"
+#include<chrono>
 
 #include<iostream>
 
@@ -440,7 +441,11 @@ void Tracking::Track()
     unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
     if(mEnableObject == 1) {
         std::vector<std::shared_ptr<ImgObjectInfo>> objs_info;
+        std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
         mInsModel.RunInstanceSeg(mImRGB, objs_info);
+        std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+        double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
+        std::cout<<"seg time is "<< ttrack<<std::endl;
         mObjectManager.UpdateObjectInstances(mCurrentFrame,objs_info);
         mCurrentObjInfo = objs_info;
     }
